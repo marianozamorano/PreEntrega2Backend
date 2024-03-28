@@ -1,5 +1,5 @@
 const CartModel = require("../models/cart.model.js");
-
+// const ProductModel = require("../models/product.model.js");
 class CartManager {
 
     async crearCarrito() {
@@ -49,6 +49,45 @@ class CartManager {
             throw error;
         }
     }
+
+    async removeProductFromCart(cartId, productId) {
+        try {
+            const carrito = await this.getCarritoById(cartId);
+            carrito.products = carrito.products.filter(item => item.product.toString() !== productId);
+            await carrito.save();
+        } catch (error) {
+            console.error("Error al eliminar un producto del carrito", error);
+            throw error;
+        }
+    }
+
+    async updateProductQuantity(cartId, productId, quantity) {
+        try {
+            const carrito = await this.getCarritoById(cartId);
+            const productoIndex = carrito.products.findIndex(item => item.product.toString() === productId);
+            if (productoIndex !== -1) {
+                carrito.products[productoIndex].quantity = quantity;
+                carrito.markModified("products");
+                await carrito.save();
+            }
+        } catch (error) {
+            console.error("Error al actualizar la cantidad de un producto en el carrito", error);
+            throw error;
+        }
+    }
+
+    async clearCart(cartId) {
+        try {
+            const carrito = await this.getCarritoById(cartId);
+            carrito.products = [];
+            await carrito.save();
+        } catch (error) {
+            console.error("Error al vaciar el carrito", error);
+            throw error;
+        }
+    }
+
 }
+
 
 module.exports = CartManager;

@@ -48,4 +48,59 @@ router.post("/:cid/product/:pid", async (req, res) => {
     }
 });
 
+// DELETE para eliminar un producto del carrito
+router.delete("/:cartId/products/:productId", async (req, res) => {
+    const cartId = req.params.cartId;
+    const productId = req.params.productId;
+
+    try {
+        await cartManager.removeProductFromCart(cartId, productId);
+        res.json({
+            message: "Producto eliminado del carrito exitosamente"
+        });
+    } catch (error) {
+        console.error("Error al eliminar producto del carrito", error);
+        res.status(500).json({
+            error: "Error interno del servidor"
+        });
+    }
+});
+
+// PUT para actualizar la cantidad de un producto en el carrito
+router.put("/:cartId/products/:productId", async (req, res) => {
+    const cartId = req.params.cartId;
+    const productId = req.params.productId;
+    const { quantity } = req.body;
+
+    try {
+        await cartManager.updateProductQuantity(cartId, productId, quantity);
+        res.json({
+            message: "Cantidad de producto actualizada en el carrito exitosamente"
+        });
+    } catch (error) {
+        console.error("Error al actualizar cantidad de producto en el carrito", error);
+        res.status(500).json({
+            error: "Error interno del servidor"
+        });
+    }
+});
+
+// DELETE para vaciar completamente un carrito
+router.delete("/:cartId", async (req, res) => {
+    const cartId = req.params.cartId;
+
+    try {
+        await cartManager.clearCart(cartId);
+        res.json({
+            message: "Carrito vaciado exitosamente"
+        });
+    } catch (error) {
+        console.error("Error al vaciar el carrito", error);
+        res.status(500).json({
+            error: "Error interno del servidor"
+        });
+    }
+});
+
+
 module.exports = router;
