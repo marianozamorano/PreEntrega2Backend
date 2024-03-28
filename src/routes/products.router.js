@@ -9,14 +9,14 @@ const productManager = new ProductManager();
 router.get("/", async (req, res) => {
     try {
         // Parámetros de consulta
-        const { limit = 10, page = 1, sort, query } = req.query;
+        const { limit = 10, page = 1, sort } = req.query;
 
         // Convertir el límite y la página a números enteros
         const limitInt = parseInt(limit);
         const pageInt = parseInt(page);
 
         // Obtener productos según los parámetros de consulta
-        const productos = await productManager.getProducts({ limit: limitInt, page: pageInt, sort, query });
+        const productos = await productManager.getProducts({ limit: limitInt, page: pageInt, sort:sort });
 
         // Calculando información de paginación
         const totalCount = await productManager.getProductCount(); // Obtener el total de productos
@@ -34,8 +34,8 @@ router.get("/", async (req, res) => {
             page: pageInt,
             hasPrevPage: hasPrevPage,
             hasNextPage: hasNextPage,
-            prevLink: hasPrevPage ? `/api/products?limit=${limitInt}&page=${pageInt - 1}` : null,
-            nextLink: hasNextPage ? `/api/products?limit=${limitInt}&page=${pageInt + 1}` : null
+            prevLink: hasPrevPage ? `/api/products?limit=${limitInt}&page=${pageInt - 1}&sort=${sort}` : null,
+            nextLink: hasNextPage ? `/api/products?limit=${limitInt}&page=${pageInt + 1}&sort=${sort}` : null
         };
 
         //Recuperamos los docs:

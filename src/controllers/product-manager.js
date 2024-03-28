@@ -37,14 +37,18 @@ class ProductManager {
             throw error;
         }
     }
-    async getProducts({ limit, page }) {
+    async getProducts({ limit, page, sort, query }) {
         try {
-            // Calcular el número de documentos que se deben omitir
             const skip = (page - 1) * limit;
+            let sortField = 'precio'; // Campo de ordenamiento predeterminado
+            if (sort === 'asc') {
+                return await ProductModel.find().sort({ [sortField]: 1 }).skip(skip).limit(limit);
+            } else if (sort === 'desc') {
+                return await ProductModel.find().sort({ [sortField]: -1 }).skip(skip).limit(limit);
+            } else {
+                return await ProductModel.find().skip(skip).limit(limit);
+            }
 
-            // Consultar la base de datos para obtener los productos con paginación
-            const productos = await ProductModel.find().skip(skip).limit(limit);
-            return productos;
         } catch (error) {
             console.log("Error al recuperar productos", error);
             throw error;
