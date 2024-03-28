@@ -40,6 +40,8 @@ router.post("/:cid/product/:pid", async (req, res) => {
     const quantity = req.body.quantity || 1;
 
     try {
+        
+
         const actualizarCarrito = await cartManager.agregarProductoAlCarrito(cartId, productId, quantity);
         res.json(actualizarCarrito.products);
     } catch (error) {
@@ -102,5 +104,23 @@ router.delete("/:cartId", async (req, res) => {
     }
 });
 
+
+router.post("/add-to-cart/:productId", async (req, res) => {
+    const productId = req.params.productId;
+    const quantity = req.body.quantity || 1;
+
+    try {
+        
+        const carrito = await cartManager.crearCarrito();
+        console.log("Se creó un nuevo carrito:", carrito._id);
+        
+        // Llama a la función para agregar producto al carrito del CartManager
+        const result = await cartManager.agregarProductoAlCarrito(carrito._id, productId, quantity);
+        res.json(result);
+    } catch (error) {
+        console.error("Error al agregar producto al carrito", error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
 
 module.exports = router;

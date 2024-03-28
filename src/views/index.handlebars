@@ -1,18 +1,28 @@
 {{!-- Mostrar los productos obtenidos --}}
 {{#each productos}}
-    <li>{{this.nombre}}</li>
-    <li>{{this.precio}}</li>
-    <li>{{this.marca}}</li>
-    <li>{{this.descripcion}}</li>
-    <hr>
-    <br>
+<div class="producto">
+    <h3>{{this.nombre}}</h3>
+    <p>Precio: ${{this.precio}}</p>
+    <p>Marca: {{this.marca}}</p>
+    <p>{{this.descripcion}}</p>
+
+    <form method="POST" action="/api/carts/add-to-cart/{{this._id}}">
+        <label for="cantidad{{this._id}}">Cantidad:</label>
+        <input type="number" id="cantidad{{this._id}}" name="quantity" value="1" min="1">
+        
+        <button type="submit" formaction="/api/carts/add-to-cart/{{this._id}}">Agregar al carrito</button>
+    </form>
+
+</div>
+<hr>
 {{/each}}
 
 {{!-- Mostrar los botones de paginación --}}
 {{#if prevLink}}
-    <a href="{{prevLink}}">Anterior</a>
+<a href="{{prevLink}}">Anterior</a>
 {{/if}}
 {{#if nextLink}}
-    <a href="{{nextLink}}">Siguiente</a>
+<a href="{{nextLink}}">Siguiente</a>
 {{/if}}
 <p>Pagina {{page}} de {{totalPages}}</p>
+

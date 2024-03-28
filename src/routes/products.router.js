@@ -53,7 +53,7 @@ router.get("/", async (req, res) => {
             totalPages: response.totalPages
         });
         
-        res.json(response);
+        // res.json(response);
     } catch (error) {
         console.error("Error al obtener productos", error);
         res.status(500).json({
