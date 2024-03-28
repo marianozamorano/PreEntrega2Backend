@@ -1,74 +1,103 @@
 const express = require("express");
 const router = express.Router();
 
-const products = [];
+const ProductManager = require("../controllers/product-manager.js");
+const productManager = new ProductManager();
+//Aca le vamos a sacar el path, porque ya no tenemos un json local. 
 
-router.get("/", (req, res) => {
-    const limit = req.query.limit ? parseInt(req.query.limit) : undefined;
-    const productList = limit ? products.slice(0, limit) : products;
-    res.json(products);
-})
-
-router.get("/:pid", (req, res) => {
-    const productId = req.params.pid;
-    const product = products.find((p) => p.id === productId);
-
-    if (product) {
-        res.json(product);
-    } else {
-        res.status(404).send("Producto no encontrado");
+//1) Listar todos los productos. 
+router.get("/", async (req, res) => {
+    try {
+        const limit = req.query.limit;
+        const productos = await productManager.getProducts();
+        if (limit) {
+            res.json(productos.slice(0, limit));
+        } else {
+            res.json(productos);
+        }
+    } catch (error) {
+        console.error("Error al obtener productos", error);
+        res.status(500).json({
+            error: "Error interno del servidor"
+        });
     }
 });
 
-router.post("/", (req, res) => {
-    const { title, description, code, price, stock, category, thumbnails } = req.body;
-    const newProduct = {
-        id: generateProductId(),
-        title,
-        description,
-        code,
-        price,
-        status: true,
-        stock,
-        category,
-        thumbnails,
-    };
+//2) Traer solo un producto por id: 
 
-    products.push(newProduct);
-    res.status(201).json({ status: "success", message: "Producto creado correctamente", product: newProduct });
-});
+router.get("/:pid", async (req, res) => {
+    const id = req.params.pid;
 
-router.put("/:pid", (req, res) => {
-    const productId = req.params.pid;
-    const updatedProductIndex = products.findIndex((p) => p.id === productId);
+    try {
+        const producto = await productManager.getProductById(id);
+        if (!producto) {
+            return res.json({
+                error: "Producto no encontrado"
+            });
+        }
 
-    if (updatedProductIndex !== -1) {
-        const updatedProduct = { ...products[updatedProductIndex], ...req.body };
-        products[updatedProductIndex] = updatedProduct;
-        res.json({ status: "success", message: "Producto actualizado correctamente", product: updatedProduct });
-    } else {
-        res.status(404).send("Producto no encontrado");
+        res.json(producto);
+    } catch (error) {
+        console.error("Error al obtener producto", error);
+        res.status(500).json({
+            error: "Error interno del servidor"
+        });
     }
 });
 
-router.delete("/:pid", (req, res) => {
-    const productId = req.params.pid;
-    const deletedProductIndex = products.findIndex((p) => p.id === productId);
 
-    if (deletedProductIndex !== -1) {
-        const deletedProduct = products.splice(deletedProductIndex, 1);
-        res.json({ status: "success", message: "Producto eliminado correctamente", product: deletedProduct });
-    } else {
-        res.status(404).send("Producto no encontrado");
+//3) Agregar nuevo producto: 
+
+router.post("/", async (req, res) => {
+    const nuevoProducto = req.body;
+
+    try {
+        await productManager.addProduct(nuevoProducto);
+        res.status(201).json({
+            message: "Producto agregado exitosamente"
+        });
+    } catch (error) {
+        console.error("Error al agregar producto", error);
+        res.status(500).json({
+            error: "Error interno del servidor"
+        });
     }
 });
 
-let nextProductId = 1;
+//4) Actualizar por ID
+router.put("/:pid", async (req, res) => {
+    const id = req.params.pid;
+    const productoActualizado = req.body;
 
-function generateProductId() {
-    const currentId = nextProductId;
-    nextProductId++;
-    return currentId.toString();
-}
+    try {
+        await productManager.updateProduct(id, productoActualizado);
+        res.json({
+            message: "Producto actualizado exitosamente"
+        });
+    } catch (error) {
+        console.error("Error al actualizar producto", error);
+        res.status(500).json({
+            error: "Error interno del servidor"
+        });
+    }
+});
+
+//5) Eliminar producto: 
+
+router.delete("/:pid", async (req, res) => {
+    const id = req.params.pid;
+
+    try {
+        await productManager.deleteProduct(id);
+        res.json({
+            message: "Producto eliminado exitosamente"
+        });
+    } catch (error) {
+        console.error("Error al eliminar producto", error);
+        res.status(500).json({
+            error: "Error interno del servidor"
+        });
+    }
+});
 
 module.exports = router;
