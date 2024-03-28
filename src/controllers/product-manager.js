@@ -37,9 +37,13 @@ class ProductManager {
             throw error;
         }
     }
-    async getProducts() {
+    async getProducts({ limit, page }) {
         try {
-            const productos = await ProductModel.find();
+            // Calcular el número de documentos que se deben omitir
+            const skip = (page - 1) * limit;
+
+            // Consultar la base de datos para obtener los productos con paginación
+            const productos = await ProductModel.find().skip(skip).limit(limit);
             return productos;
         } catch (error) {
             console.log("Error al recuperar productos", error);
@@ -98,6 +102,17 @@ class ProductManager {
 
         } catch (error) {
             console.log("Error al eliminar producto", error);
+            throw error;
+        }
+    }
+
+    async getProductCount() {
+        try {
+            // Obtener el número total de productos en la base de datos
+            const count = await ProductModel.countDocuments();
+            return count;
+        } catch (error) {
+            console.log("Error al obtener el número total de productos", error);
             throw error;
         }
     }

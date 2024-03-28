@@ -5,16 +5,55 @@ const ProductManager = require("../controllers/product-manager.js");
 const productManager = new ProductManager();
 //Aca le vamos a sacar el path, porque ya no tenemos un json local. 
 
-//1) Listar todos los productos. 
+// 1) Listar todos los productos. 
 router.get("/", async (req, res) => {
     try {
-        const limit = req.query.limit;
-        const productos = await productManager.getProducts();
-        if (limit) {
-            res.json(productos.slice(0, limit));
-        } else {
-            res.json(productos);
-        }
+        // Parámetros de consulta
+        const { limit = 10, page = 1, sort, query } = req.query;
+
+        // Convertir el límite y la página a números enteros
+        const limitInt = parseInt(limit);
+        const pageInt = parseInt(page);
+
+        // Obtener productos según los parámetros de consulta
+        const productos = await productManager.getProducts({ limit: limitInt, page: pageInt, sort, query });
+
+        // Calculando información de paginación
+        const totalCount = await productManager.getProductCount(); // Obtener el total de productos
+        const totalPages = Math.ceil(totalCount / limitInt);
+        const hasPrevPage = pageInt > 1;
+        const hasNextPage = pageInt < totalPages;
+
+        // Construir objeto de respuesta
+        const response = {
+            status: "success",
+            payload: productos,
+            totalPages: totalPages,
+            prevPage: hasPrevPage ? pageInt - 1 : null,
+            nextPage: hasNextPage ? pageInt + 1 : null,
+            page: pageInt,
+            hasPrevPage: hasPrevPage,
+            hasNextPage: hasNextPage,
+            prevLink: hasPrevPage ? `/api/products?limit=${limitInt}&page=${pageInt - 1}` : null,
+            nextLink: hasNextPage ? `/api/products?limit=${limitInt}&page=${pageInt + 1}` : null
+        };
+
+        //Recuperamos los docs:
+
+        const productosFinal = productos.map(producto => {
+            const {__id, ...rest} = producto.toObject();
+            return rest;
+        })
+
+        res.render('index', {
+            productos: productosFinal,
+            prevLink: response.prevLink,
+            nextLink: response.nextLink,
+            page: response.page,
+            totalPages: response.totalPages
+        });
+        
+
     } catch (error) {
         console.error("Error al obtener productos", error);
         res.status(500).json({
@@ -22,6 +61,8 @@ router.get("/", async (req, res) => {
         });
     }
 });
+
+
 
 //2) Traer solo un producto por id: 
 
